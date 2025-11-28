@@ -1,0 +1,69 @@
+# ============================================
+# CONFIGURACIÓN PARA SUBIR SOLO ARCHIVOS ESPECÍFICOS
+# ============================================
+
+# Excluir TODO el código Python (carpeta app/)
+app/
+
+# Excluir carpeta de planificación
+Planing/
+
+# Excluir archivos de ejemplo y documentación local
+README.md
+QUICKSTART.md
+ejemplo_ficha.json
+
+# Excluir carpeta de templates
+templates/
+
+# ============================================
+# EXCLUSIONES ESTÁNDAR DE PYTHON/FASTAPI
+# ============================================
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+env/
+venv/
+ENV/
+.venv
+
+# Variables de entorno (PERMITIR .env.example)
+.env
+.env.local
+
+# Database local
+*.db
+*.sqlite
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# Documentos generados
+generated_docs/
+
+# Logs
+*.log
+logs/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Dependencias
+requirements.txt
+
+# ============================================
+# ARCHIVOS PERMITIDOS (se subirán al repo)
+# ============================================
+# - database/ (carpeta completa)
+# - Documentos/ (carpeta completa) 
+# - .env.example
+# - tareas.md
+# ============================================
