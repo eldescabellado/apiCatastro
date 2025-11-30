@@ -3,7 +3,7 @@
 # ============================================
 
 # Excluir TODO el código Python (carpeta app/)
-app/
+#app/
 
 # Excluir carpeta de planificación
 Planing/
@@ -32,7 +32,7 @@ ENV/
 .venv
 
 # Variables de entorno (PERMITIR .env.example)
-.env
+#.env
 .env.local
 
 # Database local
@@ -57,7 +57,7 @@ logs/
 Thumbs.db
 
 # Dependencias
-requirements.txt
+#requirements.txt
 
 # ============================================
 # ARCHIVOS PERMITIDOS (se subirán al repo)

@@ -1,0 +1,5 @@
+psycopg2
+SQLAlchemy
+python-dotenv
+fastapi-sqlalchemy
+SQLAlchemy
