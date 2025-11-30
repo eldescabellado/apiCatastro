@@ -73,8 +73,9 @@ from schema import (
     ServiciosPublicos as ServiciosSchema,
     CaracteristicaConstruccion as CaracteristicaSchema,
     Lindero as LinderoSchema,
+    SchemaGuardarFichaCatastral,
 )
-from schema import SchemaGuardarFichaCatastral
+ 
 
 load_dotenv('.env')
 

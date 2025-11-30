@@ -1,4 +1,4 @@
-from typing import Optional, Literal
+from typing import List, Optional, Literal
 from decimal import Decimal
 from datetime import date, datetime
 from pydantic import BaseModel, Field, root_validator, validator
@@ -115,7 +115,7 @@ class SchemaGuardarFichaCatastral(BaseModel):
     direccion: DireccionPredio
     servicios_publicos: ServiciosPublicos
     caracteristicas_construccion: Optional[CaracteristicaConstruccion] = None
-    linderos: Optional[list[Lindero]] = None
+    linderos: Optional[List[Lindero]] = None
 
     class Config:
         orm_mode = True
