@@ -3,7 +3,7 @@ from fastapi_sqlalchemy import DBSessionMiddleware, db
 from fastapi.middleware.cors import CORSMiddleware
 from datetime import datetime
 from services import engine
-from typing import Union
+from typing import Optional, Union
 from sqlalchemy.sql import text
 from sqlalchemy.orm import  joinedload
 
@@ -437,42 +437,51 @@ def create_ficha_completa(payload: List[SchemaGuardarFichaCatastral]):
         db.session.rollback()
         raise HTTPException(status_code=400, detail=str(e))
 
-@app.get("/fichas_completas/", response_model=SchemaGuardarFichaCatastral)
-def get_ficha_completa(codigo: str ):
+@app.get("/fichas_completas/", response_model=List[SchemaGuardarFichaCatastral])
+def get_fichas_completas(codigo: Optional[str] = None, tipo_predio: Optional[str] = None):
     """
-    Obtener una ficha completa filtrando por codigo_catastral.
-    Parámetro query required: ?codigo=001-2023-URB-001
+    Obtener fichas completas filtrando por codigo_catastral y/o tipo_predio.
+    - ?codigo=... (devuelve la ficha con ese código)
+    - ?tipo_predio=urbano|rural (devuelve todas las fichas de ese tipo)
+    Es obligatorio pasar al menos uno de los dos parámetros.
     """
-    if not codigo:
-        raise HTTPException(status_code=400, detail="Parámetro 'codigo' requerido")
+    if not codigo and not tipo_predio:
+        raise HTTPException(status_code=400, detail="Se requiere al menos un parámetro de filtro: 'codigo' o 'tipo_predio'")
 
-    ficha = (
-        db.session.query(FichaORM)
-        .options(
-            joinedload(FichaORM.propietario),
-            joinedload(FichaORM.direccion),
-            joinedload(FichaORM.servicios_publicos),
-            joinedload(FichaORM.caracteristicas),
-            joinedload(FichaORM.linderos),
+    if tipo_predio and tipo_predio not in ("urbano", "rural"):
+        raise HTTPException(status_code=400, detail="tipo_predio debe ser 'urbano' o 'rural'")
+
+    query = db.session.query(FichaORM).options(
+        joinedload(FichaORM.propietario),
+        joinedload(FichaORM.direccion),
+        joinedload(FichaORM.servicios_publicos),
+        joinedload(FichaORM.caracteristicas),
+        joinedload(FichaORM.linderos),
+    ).filter(FichaORM.deleted_at == None)
+
+    if codigo:
+        query = query.filter(FichaORM.codigo_catastral == codigo)
+    if tipo_predio:
+        query = query.filter(FichaORM.tipo_predio == tipo_predio)
+
+    fichas = query.all()
+    if not fichas:
+        raise HTTPException(status_code=404, detail="No se encontraron fichas con los filtros proporcionados")
+
+    results = []
+    for ficha in fichas:
+        item = SchemaGuardarFichaCatastral(
+            ficha=FichaSchema.from_orm(ficha),
+            propietario=PropietarioSchema.from_orm(ficha.propietario) if getattr(ficha, "propietario", None) else None,
+            direccion=DireccionSchema.from_orm(ficha.direccion) if getattr(ficha, "direccion", None) else None,
+            servicios_publicos=ServiciosSchema.from_orm(ficha.servicios_publicos) if getattr(ficha, "servicios_publicos", None) else None,
+            caracteristicas_construccion=[CaracteristicaSchema.from_orm(c) for c in (ficha.caracteristicas or [])],
+            linderos=[LinderoSchema.from_orm(l) for l in (ficha.linderos or [])],
         )
-        .filter(FichaORM.codigo_catastral == codigo, FichaORM.deleted_at == None)
-        .one_or_none()
-    )
+        results.append(item)
 
-    if not ficha:
-        raise HTTPException(status_code=404, detail="Ficha no encontrada")
+    return results
 
-    # Construir respuesta usando los schemas Pydantic (deben tener orm_mode = True)
-    response = SchemaGuardarFichaCatastral(
-        ficha=FichaSchema.from_orm(ficha),
-        propietario=PropietarioSchema.from_orm(ficha.propietario) if getattr(ficha, "propietario", None) else None,
-        direccion=DireccionSchema.from_orm(ficha.direccion) if getattr(ficha, "direccion", None) else None,
-        servicios_publicos=ServiciosSchema.from_orm(ficha.servicios_publicos) if getattr(ficha, "servicios_publicos", None) else None,
-        caracteristicas_construccion=[CaracteristicaSchema.from_orm(c) for c in (ficha.caracteristicas or [])],
-        linderos=[LinderoSchema.from_orm(l) for l in (ficha.linderos or [])],
-    )
-
-    return response
 
 @app.put("/fichas_completas/{codigo}", response_model=SchemaGuardarFichaCatastral)
 def update_ficha_completa(codigo: str, payload: SchemaGuardarFichaCatastral):
